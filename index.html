@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MKW Coverage Report Generator</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <div class="container">
+    <h1>MKW Report Generator</h1>
+    
+    <div id="view-setup" class="app-view active">
+    <div class="section-card">
+      <h2>Main</h2>
+      <label>Date</label>
+      <input type="date" id="reportDate">
+      
+      <label for="leadCA">Lead CA</label>
+      <div class="ca-dropdown" id="leadCA" data-placeholder="Select one lead CA">
+        <button type="button" class="dropdown-toggle" onclick="toggleCADropdown(this)" aria-expanded="false">Select one lead CA</button>
+        <div class="dropdown-menu" role="group" aria-label="Lead CA choices"></div>
+      </div>
+      <div class="helper-text">Please mention full names at the start of the report.</div>
+      
+      <label for="supportCAs">Support CAs</label>
+      <div class="ca-dropdown" id="supportCAs" data-placeholder="Select up to 5 support CAs" data-max="5">
+        <button type="button" class="dropdown-toggle" onclick="toggleCADropdown(this)" aria-expanded="false">Select up to 5 support CAs</button>
+        <div class="dropdown-menu" role="group" aria-label="Support CA choices"></div>
+      </div>
+    </div>
+
+    <div id="sweep1Section" class="section-card">
+      <h2>Sweep 1</h2>
+      <label for="s1StartTime">Start Time</label>
+      <input type="time" id="s1StartTime" value="21:15">
+      <label for="s1EndTime">End Time</label>
+      <input type="time" id="s1EndTime" value="21:45">
+      <label for="s1CAs">CAs on Sweep</label>
+      <div class="ca-dropdown" id="s1CAs" data-placeholder="Select Sweep 1 CAs">
+        <button type="button" class="dropdown-toggle" onclick="toggleCADropdown(this)" aria-expanded="false">Select Sweep 1 CAs</button>
+        <div class="dropdown-menu" role="group" aria-label="Sweep 1 CA choices"></div>
+      </div>
+
+      <div id="sweep1Buildings">
+        <div class="building-section" data-sweep="1">
+          <label>Building</label>
+          <select name="building" onchange="renderBuildingFields(this.closest('.building-section'))">
+            <option value="Keyes">Keyes</option>
+            <option value="Matthews">Matthews</option>
+            <option value="Wallingford">Wallingford</option>
+          </select>
+          <div class="building-fields"></div>
+        </div>
+      </div>
+      <button type="button" class="add-building-button" onclick="addBuilding(1)">Add Building</button>
+      <button type="button" class="copy-sweep-button" onclick="copySweep(1)">Copy Sweep 1</button>
+    </div>
+
+    <div id="sweep2Section" class="section-card">
+      <div class="section-heading-row">
+        <h2>Sweep 2</h2>
+        <label class="toggle-row sweep-enabled-toggle">
+          <input type="checkbox" id="sweep2Enabled" checked onchange="toggleSweep2()">
+          Include Sweep 2
+        </label>
+      </div>
+      <label for="s2StartTime">Start Time</label>
+      <input type="time" id="s2StartTime" value="23:00">
+      <label for="s2EndTime">End Time</label>
+      <input type="time" id="s2EndTime" value="23:30">
+      <label for="s2CAs">CAs on Sweep</label>
+      <div class="ca-dropdown" id="s2CAs" data-placeholder="Select Sweep 2 CAs">
+        <button type="button" class="dropdown-toggle" onclick="toggleCADropdown(this)" aria-expanded="false">Select Sweep 2 CAs</button>
+        <div class="dropdown-menu" role="group" aria-label="Sweep 2 CA choices"></div>
+      </div>
+
+      <div id="sweep2Buildings">
+        <div class="building-section" data-sweep="2">
+          <label>Building</label>
+          <select name="building" onchange="renderBuildingFields(this.closest('.building-section'))">
+            <option value="Keyes">Keyes</option>
+            <option value="Matthews">Matthews</option>
+            <option value="Wallingford">Wallingford</option>
+          </select>
+          <div class="building-fields"></div>
+        </div>
+      </div>
+      <button type="button" class="add-building-button" onclick="addBuilding(2)">Add Building</button>
+      <button type="button" class="copy-sweep-button" onclick="copySweep(2)">Copy Sweep 2</button>
+    </div>
+
+    <button type="button" id="addSweep3Button" class="secondary-button" onclick="addSweep(3)">Add Sweep 3 (Weekend)</button>
+    <div id="sweep3Container"></div>
+    <button type="button" class="primary-action" onclick="startSweep()">Start Sweep</button>
+    </div>
+
+    <div id="view-floor" class="app-view" hidden>
+      <div id="floorViewContent"></div>
+      <div id="globalFloorControls" class="global-floor-controls">
+        <button type="button" onclick="navigateGlobalFloor(-1)">Previous Floor</button>
+        <span id="globalFloorPosition"></span>
+        <button type="button" onclick="navigateGlobalFloor(1)">Next Floor</button>
+      </div>
+      <button type="button" class="primary-action" onclick="finishSweep()">Finish Sweep</button>
+    </div>
+
+    <div id="view-summary" class="app-view" hidden>
+    <div id="sweepSummaryFields"></div>
+
+      <div class="checkbox-group">
+        <input type="checkbox" id="onTimeCheck" checked>
+        <label style="margin:0;">All CAs were on time for coverage and sweeps.</label>
+      </div>
+    </div>
+
+    <button onclick="generateReport()">Copy Report to Clipboard</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
