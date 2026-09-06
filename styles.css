@@ -46,6 +46,44 @@ body {
   display: none;
 }
 
+#view-floor {
+  background: linear-gradient(145deg, rgba(32, 28, 77, 0.12), rgba(32, 28, 77, 0.035));
+  border: 1px solid rgba(32, 28, 77, 0.14);
+  border-radius: 22px;
+  margin: -10px;
+  min-height: calc(100vh - 80px);
+  padding: 14px;
+}
+
+.sweep-mode-banner {
+  align-items: center;
+  background: rgba(32, 28, 77, 0.94);
+  border-radius: 14px;
+  box-shadow: 0 8px 20px rgba(32, 28, 77, 0.18);
+  color: #fff;
+  display: flex;
+  font-size: 0.9rem;
+  font-weight: 700;
+  gap: 9px;
+  margin-bottom: 14px;
+  padding: 12px 14px;
+}
+
+.sweep-mode-dot {
+  background: #8fd3b1;
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px rgba(143, 211, 177, 0.16);
+  height: 8px;
+  width: 8px;
+}
+
+.sweep-mode-hint {
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 0.78rem;
+  font-weight: 500;
+  margin-left: auto;
+}
+
 .global-floor-controls {
   align-items: center;
   display: flex;
@@ -348,6 +386,11 @@ button:active {
 
   .section-card {
     padding: 18px 15px;
+  }
+
+  #view-floor {
+    margin: -6px;
+    padding: 10px;
   }
 
   h1 {
