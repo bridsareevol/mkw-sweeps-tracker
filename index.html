@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MKW Coverage Report Generator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Pixelify+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <div class="container">
+    <h1 class="app-title" onclick="startAgain()" role="button" tabindex="0" onkeydown="if (event.key === 'Enter' || event.key === ' ') startAgain()">MKW Report Generator</h1>
+    
+    <div id="view-main" class="app-view active">
+    <div class="section-card">
+      <h2>Main</h2>
+      <label>Date</label>
+      <input type="date" id="reportDate">
+      
+      <label for="leadCA">Lead CA</label>
+      <div class="ca-dropdown" id="leadCA" data-placeholder="Select one lead CA">
+        <button type="button" class="dropdown-toggle" onclick="toggleCADropdown(this)" aria-expanded="false">Select one lead CA</button>
+        <div class="dropdown-menu" role="group" aria-label="Lead CA choices"></div>
+      </div>
+      <div class="helper-text">Please mention full names at the start of the report.</div>
+      
+      <label for="supportCAs">Support CAs</label>
+      <div class="ca-dropdown" id="supportCAs" data-placeholder="Select up to 5 support CAs" data-max="5">
+        <button type="button" class="dropdown-toggle" onclick="toggleCADropdown(this)" aria-expanded="false">Select up to 5 support CAs</button>
+        <div class="dropdown-menu" role="group" aria-label="Support CA choices"></div>
+      </div>
+      <label for="startTime">Start Time</label>
+      <input type="time" id="startTime" value="21:15">
+    </div>
+    <button type="button" class="primary-action" onclick="goToBuildings()">Next: Choose Buildings</button>
+    </div>
+
+    <div id="view-buildings" class="app-view" hidden>
+      <div class="section-card">
+        <h2>Buildings</h2>
+        <p class="helper-text">Select every building you will cover. They will appear one at a time during the sweep.</p>
+        <div id="buildingChoices" class="building-choices"></div>
+      </div>
+      <div class="page-actions">
+        <button type="button" class="secondary-button" onclick="showView('view-main')">Back</button>
+        <button type="button" class="primary-action" onclick="startSweep()">Next: Start Sweep</button>
+      </div>
+    </div>
+
+    <div id="view-floor" class="app-view" hidden>
+      <div class="sweep-mode-banner">
+        <span class="sweep-mode-dot"></span>
+        <span>Sweep in progress</span>
+        <span class="sweep-mode-hint">Floor by floor</span>
+      </div>
+      <div id="floorViewContent"></div>
+      <div id="globalFloorPosition" class="building-position"></div>
+      <div class="page-actions">
+        <button type="button" class="secondary-button" onclick="showView('view-buildings')">Back</button>
+        <button type="button" class="primary-action" onclick="finishSweep()">Next</button>
+      </div>
+    </div>
+
+    <div id="view-summary" class="app-view" hidden>
+    <div id="sweepSummaryFields"></div>
+
+      <div class="checkbox-group">
+        <input type="checkbox" id="onTimeCheck" checked>
+        <label style="margin:0;">All CAs were on time for coverage and sweeps.</label>
+      </div>
+      <button type="button" class="primary-action" onclick="generateReport()">Preview Report</button>
+    </div>
+
+    <div id="view-preview" class="app-view" hidden>
+      <div class="section-card">
+        <h2>Report Preview</h2>
+        <label for="reportPreview">Review your report before copying</label>
+        <textarea id="reportPreview" class="report-preview" readonly></textarea>
+      </div>
+      <div id="timeReference" class="time-reference" aria-live="polite"></div>
+      <div class="page-actions">
+        <button type="button" class="secondary-button" onclick="showView('view-summary')">Back</button>
+        <button type="button" class="primary-action" onclick="copyReport()">Copy Report</button>
+      </div>
+    </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
