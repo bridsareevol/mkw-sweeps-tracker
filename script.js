@@ -46,8 +46,20 @@ const BUILDINGS = {
   }
 };
 
+const BUILDING_LABELS = {
+  Keyes: 'Mary E. Keyes',
+  Matthews: 'Matthews',
+  Wallingford: 'Wallingford'
+};
+
+function getBuildingLabel(building) {
+  return BUILDING_LABELS[building] || building;
+}
+
 let globalFloorPanels = [];
 let globalFloorIndex = 0;
+let selectedBuildingSections = [];
+let selectedBuildingIndex = 0;
 
 function populateCADropdown(id) {
   const dropdown = document.getElementById(id);
@@ -64,7 +76,7 @@ function populateCADropdown(id) {
 }
 
 function populateCASelectors() {
-  ['leadCA', 'supportCAs', 's1CAs', 's2CAs'].forEach(populateCADropdown);
+  ['leadCA', 'supportCAs'].forEach(populateCADropdown);
 }
 
 function toggleCADropdown(button) {
@@ -98,6 +110,18 @@ function handleCASelection(checkbox) {
 }
 
 populateCASelectors();
+
+function populateBuildingChoices() {
+  const choices = document.getElementById('buildingChoices');
+  Object.keys(BUILDINGS).forEach(building => {
+    const label = document.createElement('label');
+    label.className = 'building-choice';
+    label.innerHTML = `<input type="checkbox" value="${building}"> <span>${getBuildingLabel(building)}</span>`;
+    choices.appendChild(label);
+  });
+}
+
+populateBuildingChoices();
 
 // Auto-fill today's date
 document.getElementById('reportDate').valueAsDate = new Date();
@@ -277,7 +301,7 @@ function renderKeyesBuildingFields(fieldsContainer) {
     ${noteField(`floor${floor}`)}`;
 
   fieldsContainer.innerHTML = `
-    <p class="building-note">Keyes-specific room checks</p>
+    <p class="building-note">Mary E. Keyes-specific room checks</p>
     ${stepper(6, ['Study Room'])}
     ${stepper(5, ['Study Room'])}
     ${stepper(4, ['Study Room'])}
@@ -295,16 +319,12 @@ function renderMatthewsBuildingFields(fieldsContainer) {
   fieldsContainer.innerHTML = `
     <label>Floor 4</label>
     <input type="text" name="floor4" value="Quiet. Roof access locked.">
-    ${noteField('floor4')}
     <label>Floor 3</label>
     <input type="text" name="floor3" value="Quiet">
-    ${noteField('floor3')}
     <label>Floor 2</label>
     <input type="text" name="floor2" value="Quiet">
-    ${noteField('floor2')}
     <label>Floor 1</label>
     <input type="text" name="floor1" value="Quiet">
-    ${noteField('floor1')}
     <label>Common Rooms</label>
     <p class="helper-text">Matthews towers: North, Center, East, South, and West. Common rooms are in North, Center, and East.</p>
     <div class="room-steppers matthews-common-rooms">
@@ -328,10 +348,8 @@ function renderWallingfordBuildingFields(fieldsContainer) {
   fieldsContainer.innerHTML = `
     <label>Floor 3</label>
     <input type="text" name="floor3" value="Quiet">
-    ${noteField('floor3')}
     <label>Floor 2</label>
     <input type="text" name="floor2" value="Quiet">
-    ${noteField('floor2')}
     <label>Floor 1</label>
     <div class="room-steppers">
       <div class="room-stepper">
@@ -341,10 +359,8 @@ function renderWallingfordBuildingFields(fieldsContainer) {
         <button type="button" onclick="changeStepper(this, 1)" aria-label="Increase Tea Room count">+</button>
       </div>
     </div>
-    ${noteField('floor1')}
     <label>Basement</label>
-    <div class="room-steppers wallingford-basement-rooms">${steppers}</div>
-    ${noteField('basement')}`;
+    <div class="room-steppers wallingford-basement-rooms">${steppers}</div>`;
 }
 
 function renderBuildingFields(section) {
@@ -360,7 +376,7 @@ function renderBuildingFields(section) {
   } else {
     renderGenericBuildingFields(fieldsContainer);
   }
-  initializeFloorCarousel(fieldsContainer);
+
 }
 
 document.querySelectorAll('.building-section').forEach(renderBuildingFields);
@@ -373,19 +389,41 @@ function showView(viewId) {
   });
 }
 
-function startSweep() {
-  const floorViewContent = document.getElementById('floorViewContent');
-  const sweepSections = [
-    document.getElementById('sweep1Section'),
-    ...(document.getElementById('sweep2Enabled').checked
-      ? [document.getElementById('sweep2Section')]
-      : []),
-    ...document.querySelectorAll('#sweep3Container > .section-card')
-  ].filter(Boolean);
+function startAgain() {
+  window.location.reload();
+}
 
-  sweepSections.forEach(section => floorViewContent.appendChild(section));
-  initializeGlobalFloorCarousel();
-  addGlobalFloorSwipeListeners(floorViewContent);
+function goToBuildings() {
+  showView('view-buildings');
+}
+
+function startSweep() {
+  const selectedBuildings = [...document.querySelectorAll('#buildingChoices input:checked')]
+    .map(input => input.value);
+  if (!selectedBuildings.length) {
+    alert('Select at least one building before starting the sweep.');
+    return;
+  }
+
+  const floorViewContent = document.getElementById('floorViewContent');
+  floorViewContent.innerHTML = '';
+  const sweepSection = document.createElement('div');
+  sweepSection.id = 'sweep1Section';
+  sweepSection.className = 'section-card';
+  sweepSection.innerHTML = `<h2>Start Sweep</h2><p class="helper-text">Started at ${formatTime(document.getElementById('startTime').value)}.</p><div id="sweep1Buildings"></div>`;
+  floorViewContent.appendChild(sweepSection);
+
+  selectedBuildingSections = selectedBuildings.map(building => {
+    const section = document.createElement('div');
+    section.className = 'building-section';
+    section.dataset.sweep = '1';
+    section.innerHTML = `<h3>${building}</h3><input type="hidden" name="building" value="${building}"><div class="building-fields"></div>`;
+    document.getElementById('sweep1Buildings').appendChild(section);
+    renderBuildingFields(section);
+    return section;
+  });
+  selectedBuildingIndex = 0;
+  showBuildingInProgress(0);
   showView('view-floor');
 }
 
@@ -402,15 +440,25 @@ function initializeGlobalFloorCarousel() {
     const buildingSection = panel.closest('.building-section');
     const sweepSection = panel.closest('.section-card');
     panel.dataset.building = buildingSection.querySelector('[name="building"]').value;
-    panel.dataset.buildingLabel = panel.dataset.building === 'Keyes'
-      ? 'Mary E. Keyes'
-      : panel.dataset.building;
+    panel.dataset.buildingLabel = getBuildingLabel(panel.dataset.building);
     panel.dataset.sweep = sweepSection.id;
     panel.hidden = true;
   });
   if (globalFloorPanels.length) {
     showGlobalFloorPanel(0);
   }
+}
+
+function showBuildingInProgress(index) {
+  selectedBuildingIndex = index;
+  selectedBuildingSections.forEach((section, sectionIndex) => {
+    section.hidden = sectionIndex !== index;
+  });
+  const building = selectedBuildingSections[index].querySelector('[name="building"]').value;
+  document.getElementById('globalFloorPosition').textContent =
+    `${getBuildingLabel(building)} (${index + 1} of ${selectedBuildingSections.length})`;
+  document.querySelector('#view-floor .primary-action').textContent =
+    index === selectedBuildingSections.length - 1 ? 'Next: Summary' : 'Next: Building';
 }
 
 function showGlobalFloorPanel(index) {
@@ -447,17 +495,16 @@ function updateGlobalFloorPosition() {
 }
 
 function finishSweep() {
+  if (selectedBuildingIndex < selectedBuildingSections.length - 1) {
+    showBuildingInProgress(selectedBuildingIndex + 1);
+    return;
+  }
   renderSweepSummaryFields();
   showView('view-summary');
 }
 
 function getEnabledSweepNumbers() {
-  return [1, 2, 3].filter(sweepNumber => {
-    if (sweepNumber === 2 && !document.getElementById('sweep2Enabled').checked) {
-      return false;
-    }
-    return Boolean(document.getElementById(`sweep${sweepNumber}Section`)) || sweepNumber === 1;
-  });
+  return [1];
 }
 
 function renderSweepSummaryFields() {
@@ -468,9 +515,12 @@ function renderSweepSummaryFields() {
     const section = document.createElement('div');
     section.className = 'section-card';
     section.innerHTML = `
-      <h2>Sweep ${sweepNumber} Summary</h2>
+      <h2>Sweep Summary</h2>
       <label for="s${sweepNumber}Vibe">Shift Vibe & Trends</label>
       <textarea id="s${sweepNumber}Vibe" placeholder="The shift was quiet OR The shift was busy with..."></textarea>
+
+      <label for="s${sweepNumber}EndTime">End Time</label>
+      <input type="time" id="s${sweepNumber}EndTime">
 
       <label for="s${sweepNumber}Calls">Calls Received</label>
       <input type="number" id="s${sweepNumber}Calls" value="0" min="0">
@@ -499,21 +549,21 @@ function addSweep(sweepNumber) {
   sweepSection.id = `sweep${sweepNumber}Section`;
   sweepSection.className = 'section-card';
   sweepSection.innerHTML = `
-    <h2>Sweep ${sweepNumber}</h2>
+    <h2>Sweep</h2>
     <label for="s${sweepNumber}StartTime">Start Time</label>
     <input type="time" id="s${sweepNumber}StartTime" value="01:00">
     <label for="s${sweepNumber}EndTime">End Time</label>
     <input type="time" id="s${sweepNumber}EndTime" value="01:30">
     <label for="s${sweepNumber}CAs">CAs on Sweep</label>
-    <div class="ca-dropdown" id="s${sweepNumber}CAs" data-placeholder="Select Sweep ${sweepNumber} CAs">
-      <button type="button" class="dropdown-toggle" onclick="toggleCADropdown(this)" aria-expanded="false">Select Sweep ${sweepNumber} CAs</button>
-      <div class="dropdown-menu" role="group" aria-label="Sweep ${sweepNumber} CA choices"></div>
+    <div class="ca-dropdown" id="s${sweepNumber}CAs" data-placeholder="Select Sweep CAs">
+      <button type="button" class="dropdown-toggle" onclick="toggleCADropdown(this)" aria-expanded="false">Select Sweep CAs</button>
+      <div class="dropdown-menu" role="group" aria-label="Sweep CA choices"></div>
     </div>
     <div id="sweep${sweepNumber}Buildings">
       <div class="building-section" data-sweep="${sweepNumber}">
         <label>Building</label>
         <select name="building" onchange="renderBuildingFields(this.closest('.building-section'))">
-          <option value="Keyes">Keyes</option>
+          <option value="Keyes">Mary E. Keyes</option>
           <option value="Matthews">Matthews</option>
           <option value="Wallingford">Wallingford</option>
         </select>
@@ -521,7 +571,7 @@ function addSweep(sweepNumber) {
       </div>
     </div>
     <button type="button" class="add-building-button" onclick="addBuilding(${sweepNumber})">Add Building</button>
-    <button type="button" class="copy-sweep-button" onclick="copySweep(${sweepNumber})">Copy Sweep ${sweepNumber}</button>`;
+    <button type="button" class="copy-sweep-button" onclick="copySweep(${sweepNumber})">Copy Sweep</button>`;
 
   document.getElementById('sweep3Container').appendChild(sweepSection);
   document.getElementById('addSweep3Button').hidden = true;
@@ -536,7 +586,7 @@ function addBuilding(sweepNumber) {
   buildingSection.innerHTML = `
     <label>Building</label>
     <select name="building" onchange="renderBuildingFields(this.closest('.building-section'))">
-      <option value="Keyes">Keyes</option>
+      <option value="Keyes">Mary E. Keyes</option>
       <option value="Matthews">Matthews</option>
       <option value="Wallingford">Wallingford</option>
     </select>
@@ -574,11 +624,11 @@ function getBuildingReports(sweepNumber) {
 }
 
 function getSweepReport(sweepNumber) {
-  const startTime = formatTime(document.getElementById(`s${sweepNumber}StartTime`).value);
-  const endTime = formatTime(document.getElementById(`s${sweepNumber}EndTime`).value);
-  const cas = getSelectedLastNames(`s${sweepNumber}CAs`);
+  const leadCA = getSelectedLastNames('leadCA');
+  const supportCAs = getSelectedLastNames('supportCAs');
+  const cas = [leadCA, supportCAs].filter(Boolean).join(', ');
   const buildings = getBuildingReports(sweepNumber);
-  return `Sweep ${sweepNumber}: ${startTime} to ${endTime}\nCAs on Sweep: ${cas}\n${buildings}`;
+  return buildings.replace(/^(Building:[^\n]*)/gm, `$1\nCAs on Sweeps: ${cas}`);
 }
 
 function copySweep(sweepNumber) {
@@ -588,7 +638,7 @@ function copySweep(sweepNumber) {
 
   const sweepReport = getSweepReport(sweepNumber);
   navigator.clipboard.writeText(sweepReport).then(() => {
-    alert(`Sweep ${sweepNumber} copied to clipboard!`);
+    alert('Sweep copied to clipboard!');
   }).catch(err => {
     alert("Failed to copy text. Check console for errors.");
     console.error("Clipboard error:", err);
@@ -596,26 +646,26 @@ function copySweep(sweepNumber) {
 }
 
 function getKeyesBuildingReport(section) {
+  const floorRoomSteppers = [...section.querySelectorAll('.room-steppers:not(.keyes-basement-rooms)')];
   const floors = [6, 5, 4, 3, 2, 1].map(floor => {
-    const floorPanel = section.querySelector(`.floor-panel[data-floor="Floor ${floor}"]`);
-    const roomSteppers = floorPanel.querySelector('.room-steppers');
+    const roomSteppers = floorRoomSteppers[6 - floor];
     const roomStatuses = [...roomSteppers.querySelectorAll('input[data-room]')]
       .map(formatRoomStatus);
     return `Floor ${floor}: ${roomStatuses.join(' ')}${getLocationNote(section, `floor${floor}`)}`;
   }).join('\n');
-  const floor6Stepper = section.querySelector('.floor-panel[data-floor="Floor 6"] input[data-room]');
+  const floor6Stepper = floorRoomSteppers[0].querySelector('input[data-room]');
   const floor6 = Number(floor6Stepper.value) > 0
     ? `Met ${floor6Stepper.value} students in the Study Room. Roof access locked.`
     : 'Quiet. Roof access locked.';
   const basement = [...section.querySelectorAll('.keyes-basement-rooms input[data-room]')]
     .map(formatRoomStatus)
     .join(' ');
-  return `Building: Keyes\n${floors}\nFloor 6: ${floor6}${getLocationNote(section, 'floor6')}\nBasement: ${basement}${getLocationNote(section, 'basement')}`;
+  return `Building: Mary E. Keyes\n${floors}\nFloor 6: ${floor6}${getLocationNote(section, 'floor6')}\nBasement: ${basement}${getLocationNote(section, 'basement')}`;
 }
 
 function getMatthewsBuildingReport(section) {
   const floors = [4, 3, 2, 1].map(floor =>
-    `Floor ${floor}: ${section.querySelector(`[name="floor${floor}"]`).value}${getLocationNote(section, `floor${floor}`)}`
+    `Floor ${floor}: ${section.querySelector(`[name="floor${floor}"]`).value}`
   ).join('\n');
   const commonRooms = [...section.querySelectorAll('.matthews-common-rooms input[data-room]')]
     .map(formatRoomStatus)
@@ -635,8 +685,8 @@ function getWallingfordBuildingReport(section) {
   const basement = [...section.querySelectorAll('.wallingford-basement-rooms input[data-room]')]
     .map(formatRoomStatus)
     .join(' ');
-  const floorsWithNotes = `Floor 3: ${section.querySelector('[name="floor3"]').value}${getLocationNote(section, 'floor3')}\nFloor 2: ${section.querySelector('[name="floor2"]').value}${getLocationNote(section, 'floor2')}\nFloor 1: ${floor1}${getLocationNote(section, 'floor1')}`;
-  return `Building: Wallingford\n${floorsWithNotes}\nBasement: ${basement}${getLocationNote(section, 'basement')}`;
+  const floors = `Floor 3: ${section.querySelector('[name="floor3"]').value}\nFloor 2: ${section.querySelector('[name="floor2"]').value}\nFloor 1: ${floor1}`;
+  return `Building: Wallingford\n${floors}\nBasement: ${basement}`;
 }
 
 function updateIdFields(type, sweepNumber) {
@@ -648,7 +698,7 @@ function updateIdFields(type, sweepNumber) {
   const idLabels = {
     ir: 'Incident ID',
     soc: 'Concern ID',
-    workOrder: 'Work Order ID'
+    workOrder: 'Room Space ID'
   };
   const countInput = document.getElementById(countInputIds[type]);
   const fieldsContainer = document.getElementById(`s${sweepNumber}${type === 'ir' ? 'Ir' : type === 'soc' ? 'Soc' : 'WorkOrder'}IdFields`);
@@ -704,36 +754,33 @@ function getSweepSummary(sweepNumber) {
   const socIds = getSubmittedIds('soc', sweepNumber);
   const workOrderIds = getSubmittedIds('workOrder', sweepNumber);
 
-  return `Coverage Summary:\n${vibe}\n${formatSubmittedItems(irs, 'IR', 'IncidentID', irIds)}\n${formatSubmittedItems(socs, 'SOC', 'ConcernID', socIds)}\n${formatSubmittedItems(workOrders, 'Work Order', 'WorkOrderID', workOrderIds)}\n${calls} call(s) were received`;
+  return `\nCoverage Summary:\n${vibe}\n${formatSubmittedItems(irs, 'IR', 'IncidentID', irIds)}\n${formatSubmittedItems(socs, 'SOC', 'ConcernID', socIds)}\n${formatSubmittedItems(workOrders, 'Work Order', 'WorkOrderID', workOrderIds)}\n${calls} call(s) were received`;
 }
 
 function buildReport() {
-  const dateRaw = document.getElementById('reportDate').value;
-  const formattedDate = formatDate(dateRaw);
-  const leadCA = getSelectedLastNames('leadCA');
-  const supportCAs = getSelectedLastNames('supportCAs');
-
   const sweepReports = getEnabledSweepNumbers()
     .map(sweepNumber => `${getSweepReport(sweepNumber)}\n${getSweepSummary(sweepNumber)}`)
     .join('\n\n');
 
   const onTime = document.getElementById('onTimeCheck').checked ? "All CAs were on time for coverage and sweeps." : "Not all CAs were on time.";
 
-  return `Main
-Date: ${formattedDate}
-Report Description:
-MKW Coverage Report
-Lead CA: ${leadCA}
-Support CAs: ${supportCAs}
-
-Custom Fields 2: Building Sweep Notes
-${sweepReports}
+  return `${sweepReports}
 
 ${onTime}`;
 }
 
 function generateReport() {
   const finalReport = buildReport();
+  document.getElementById('reportPreview').value = finalReport;
+  const startTime = formatTime(document.getElementById('startTime').value);
+  const endTime = formatTime(document.getElementById('s1EndTime').value);
+  document.getElementById('timeReference').textContent =
+    `Time Reference:\nStart Time: ${startTime}\nEnd Time: ${endTime}`;
+  showView('view-preview');
+}
+
+function copyReport() {
+  const finalReport = document.getElementById('reportPreview').value;
   navigator.clipboard.writeText(finalReport).then(() => {
     alert("Report copied to clipboard! Ready to paste into the portal.");
   }).catch(err => {
