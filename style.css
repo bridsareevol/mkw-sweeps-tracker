@@ -1,0 +1,198 @@
+:root {
+  --primary: #8A0038; /* McMaster Maroon */
+  --bg: #f4f4f9;
+  --card-bg: #ffffff;
+  --text: #333333;
+  --border: #cccccc;
+}
+
+body {
+  font-family: "Inter", sans-serif;
+  background-color: var(--bg);
+  color: var(--text);
+  padding: 20px;
+  margin: 0;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: "Inter", sans-serif;
+}
+
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+  background: var(--card-bg);
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+h1, h2, h3 {
+  color: var(--primary);
+}
+
+.section-card {
+  border: 1px solid var(--border);
+  padding: 15px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+}
+
+label {
+  display: block;
+  font-weight: bold;
+  margin-top: 10px;
+  margin-bottom: 5px;
+}
+
+input[type="text"],
+input[type="date"],
+input[type="number"],
+select,
+textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.helper-text {
+  font-size: 0.8em;
+  color: #666;
+  margin-top: 2px;
+  margin-bottom: 8px;
+}
+
+button {
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  padding: 15px;
+  width: 100%;
+  font-size: 16px;
+  font-weight: bold;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+button:hover {
+  background-color: #6a002b;
+}
+
+.ca-dropdown {
+  position: relative;
+}
+
+.dropdown-toggle {
+  overflow: hidden;
+  padding: 10px;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dropdown-menu {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+  display: none;
+  left: 0;
+  max-height: 260px;
+  overflow-y: auto;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: 10;
+}
+
+.ca-dropdown.open .dropdown-menu {
+  display: block;
+}
+
+.dropdown-menu label {
+  align-items: center;
+  cursor: pointer;
+  display: flex;
+  font-weight: normal;
+  gap: 8px;
+  margin: 0;
+  padding: 9px 10px;
+}
+
+.dropdown-menu label:hover {
+  background: #f4f4f9;
+}
+
+.dropdown-menu input {
+  width: auto;
+}
+
+.room-steppers {
+  display: grid;
+  gap: 8px;
+}
+
+.room-stepper {
+  display: grid;
+  grid-template-columns: 1fr 36px 56px 36px;
+  align-items: center;
+  gap: 6px;
+}
+
+.room-stepper span {
+  font-size: 0.95em;
+}
+
+.room-stepper button {
+  width: 36px;
+  height: 36px;
+  margin: 0;
+  padding: 0;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.room-stepper input {
+  width: 56px;
+  padding: 8px 4px;
+  text-align: center;
+}
+
+.building-note {
+  color: #666;
+  font-size: 0.85em;
+  margin: 12px 0 0;
+}
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toggle-row input {
+  width: auto;
+}
+
+.checkbox-group {
+  display: flex;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.checkbox-group input {
+  width: auto;
+  margin-right: 10px;
+}
